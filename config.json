@@ -1,0 +1,7 @@
+{
+  "perSession": 9,
+  "weeksBack": 1,
+  "weeksAhead": 3,
+  "keepWeeks": 8,
+  "watchlist": ["AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "META", "TSLA", "JPM", "GS", "MS", "BAC", "ASML", "TSM", "NFLX", "V", "MA"]
+}

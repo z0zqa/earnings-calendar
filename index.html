@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kalendarz wyników</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="masthead">
+    <div class="masthead__title">
+      <p class="kicker">Earnings · USA</p>
+      <h1>Kalendarz wyników</h1>
+      <p class="week-range" id="weekRange"></p>
+    </div>
+    <div class="controls" id="controls">
+      <div class="nav">
+        <button class="btn btn--icon" id="prev" aria-label="Poprzedni tydzień">‹</button>
+        <button class="btn" id="today">Ten tydzień</button>
+        <button class="btn btn--icon" id="next" aria-label="Następny tydzień">›</button>
+      </div>
+      <input class="search" id="search" type="search" placeholder="Szukaj tickera lub spółki" autocomplete="off">
+      <div class="seg" role="group" aria-label="Widok">
+        <button class="seg__btn" id="watchOnly" aria-pressed="false">Watchlista</button>
+        <button class="seg__btn" id="colorToggle" aria-pressed="false">Kolor</button>
+      </div>
+    </div>
+  </header>
+
+  <section class="stats" id="stats"></section>
+  <main class="board" id="board"></main>
+
+  <footer class="foot">
+    <span id="updated"></span>
+    <span>Dane: Nasdaq · logotypy: FMP / Parqet · godziny wg czasu nowojorskiego</span>
+  </footer>
+
+  <div class="pop" id="pop" role="dialog" hidden></div>
+
+  <script src="config.js"></script>
+  <script src="data/earnings.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
