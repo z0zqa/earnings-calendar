@@ -114,7 +114,7 @@
       ['Raportów w tygodniu', `${total}`],
       ['Największa spółka', biggest ? `${esc(biggest.s)} <small>${fmtCap(biggest.mc)}</small>` : '—'],
       ['Najgęstszy dzień', busiest ? `${DOW[busiest.i]} ${addDays(state.monday, busiest.i).getUTCDate()} <small>${busiest.n} spółek</small>` : '—'],
-      ['Z watchlisty', weekDates.size ? `<span class="stat__value--sage">${weekDates.size}</span> <small>${[...weekDates].slice(0, 6).map(esc).join(' · ')}</small>` : '0'],
+      ['Z watchlisty', weekDates.size ? `<span class="stat__value--accent">${weekDates.size}</span> <small>${[...weekDates].slice(0, 6).map(esc).join(' · ')}</small>` : '0'],
     ].map(([l, v]) => `<div class="stat"><div class="stat__label">${l}</div><div class="stat__value">${v}</div></div>`).join('');
 
     $('updated').textContent = DATA.updated

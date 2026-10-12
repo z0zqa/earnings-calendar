@@ -19,7 +19,8 @@ const DOW = ['Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek'];
 const DOW_SHORT = ['Pon', 'Wt', 'Śr', 'Czw', 'Pt'];
 const MONTHS = ['sty', 'lut', 'mar', 'kwi', 'maj', 'cze', 'lip', 'sie', 'wrz', 'paź', 'lis', 'gru'];
 const SESSION = { bmo: 'przed otwarciem', amc: 'po zamknięciu', tns: 'godz. nieustalona' };
-const C = { black: '#111315', charcoal: '#4A4C4E', silver: '#A9AAAB', ivory: '#E7DDD2', ground: '#F3EEE8', paper: '#FBF8F4', rule: '#D9D0C6', sage: '#53685F', rose: '#C98F91' };
+// Paleta Option Toolkit: midnight navy, graphite, slate ink, cool mist, eucalyptus.
+const C = { navy: '#172236', ink: '#252A31', muted: '#56657A', silver: '#B7BEC7', mist: '#EEF1F3', ground: '#F7F9FA', line: '#D5DBE1', accent: '#52736D', accentInk: '#43615B' };
 
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 const cap = (v) => v == null ? '—' : v >= 1e12 ? `$${(v / 1e12).toFixed(2)} bln` : v >= 1e9 ? `$${(v / 1e9).toFixed(0)} mld` : `$${(v / 1e6).toFixed(0)} mln`;
@@ -62,40 +63,40 @@ try {
 console.log(`Zrzut: ${shotPath}`);
 
 // ---- treść maila ----
-const th = `style="text-align:left;padding:8px 0;border-bottom:1px solid ${C.charcoal};font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:${C.charcoal};font-weight:600"`;
-const td = (extra = '') => `style="padding:7px 0;border-bottom:1px solid ${C.rule};font-size:14px;${extra}"`;
+const th = `style="text-align:left;padding:8px 0;border-bottom:1px solid ${C.navy};font-size:12.5px;color:${C.muted};font-weight:700;border-bottom-color:${C.navy}"`;
+const td = (extra = '') => `style="padding:7px 0;border-bottom:1px solid ${C.line};font-size:14px;color:${C.ink};${extra}"`;
 const row = (r) => `<tr>
-  <td ${td(`font-weight:700;color:${watch.has(r.s) ? C.sage : C.black};width:70px`)}>${esc(r.s)}</td>
-  <td ${td(`color:${C.charcoal}`)}>${esc(r.n)}</td>
+  <td ${td(`font-weight:700;color:${watch.has(r.s) ? C.accentInk : C.navy};width:70px`)}>${esc(r.s)}</td>
+  <td ${td(`color:${C.muted}`)}>${esc(r.n)}</td>
   <td ${td('white-space:nowrap')}>${DOW_SHORT[r.day]} · ${SESSION[r.t]}</td>
   <td ${td('text-align:right;white-space:nowrap')}>${cap(r.mc)}</td>
   <td ${td('text-align:right;white-space:nowrap;padding-left:12px')}>${eps(r.eps)}</td></tr>`;
 const table = (rows) => `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
   <tr><th ${th}>Ticker</th><th ${th}>Spółka</th><th ${th}>Kiedy</th><th ${th.replace('left', 'right')}>Kapitalizacja</th><th ${th.replace('left', 'right')}>EPS (konsensus)</th></tr>
   ${rows.map(row).join('')}</table>`;
-const h2 = (t) => `<h2 style="margin:32px 0 6px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:${C.sage};font-weight:700">${t}</h2>`;
+const h2 = (t) => `<h2 style="margin:32px 0 8px;padding-top:12px;border-top:1px solid ${C.line};font-size:16.5px;color:${C.navy};font-weight:700"><span style="display:inline-block;width:24px;height:3px;background:${C.accent};vertical-align:middle;margin-right:10px"></span>${t}</h2>`;
 
 const dayLines = days.map((d) => {
   const best = (t) => d.rows.filter((r) => r.t === t).slice(0, 5).map((r) => `<b>${esc(r.s)}</b>`).join(', ') || '—';
-  return `<tr><td ${td(`font-weight:700;width:120px;vertical-align:top`)}>${DOW[d.i]}<br><span style="font-weight:400;color:${C.charcoal};font-size:12px">${d.rows.length} spółek</span></td>
-    <td ${td('vertical-align:top')}><span style="color:${C.sage};font-size:12px">Przed otwarciem:</span> ${best('bmo')}<br>
-    <span style="color:${C.charcoal};font-size:12px">Po zamknięciu:</span> ${best('amc')}</td></tr>`;
+  return `<tr><td ${td(`font-weight:700;width:120px;vertical-align:top`)}>${DOW[d.i]}<br><span style="font-weight:400;color:${C.muted};font-size:12px">${d.rows.length} spółek</span></td>
+    <td ${td('vertical-align:top')}><span style="color:${C.accentInk};font-size:12px">Przed otwarciem:</span> ${best('bmo')}<br>
+    <span style="color:${C.muted};font-size:12px">Po zamknięciu:</span> ${best('amc')}</td></tr>`;
 }).join('');
 
 const appUrl = process.env.APP_URL ? `${process.env.APP_URL.replace(/\/$/, '')}/?week=${week}` : null;
-const html = `<!doctype html><html lang="pl"><body style="margin:0;background:${C.ground};font-family:Archivo,Arial,Helvetica,sans-serif;color:${C.black}">
+const html = `<!doctype html><html lang="pl"><body style="margin:0;background:${C.ground};font-family:Archivo,Arial,Helvetica,sans-serif;color:${C.ink}">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${C.ground}"><tr><td align="center" style="padding:32px 16px">
 <table role="presentation" width="680" cellpadding="0" cellspacing="0" style="max-width:680px;width:100%">
-<tr><td style="border-bottom:2px solid ${C.black};padding-bottom:16px">
-  <div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:${C.sage};font-weight:700">Earnings · USA</div>
-  <h1 style="margin:6px 0 0;font-size:32px;line-height:1.1;font-weight:600;letter-spacing:-.02em">Tydzień ${range}</h1>
+<tr><td style="background:${C.navy};padding:20px 24px">
+  <div style="font-size:15px;font-weight:700;color:${C.mist}"><span style="color:${C.silver}">Earnings</span> Kalendarz wyników</div>
+  <div style="margin-top:4px;font-size:26px;line-height:1.2;font-weight:600;color:${C.mist};letter-spacing:-.01em">Tydzień ${range}</div>
 </td></tr>
-<tr><td style="padding:18px 0 0">
+<tr><td style="padding:24px 0 0">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
     ${[['Raportów', all.length], ['Najgęstszy dzień', `${DOW[busiest.i]} (${busiest.rows.length})`], ['Z watchlisty', hits.length]].map(([l, v], i) =>
-      `<td style="padding:0 12px 0 ${i ? 16 : 0}px;${i ? `border-left:1px solid ${C.rule};` : ''}vertical-align:top">
-        <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:${C.charcoal};font-weight:600">${l}</div>
-        <div style="font-size:24px;font-weight:600;${i === 2 ? `color:${C.sage}` : ''}">${v}</div></td>`).join('')}
+      `<td style="padding:10px 12px 0 0;border-top:1px solid ${C.line};vertical-align:top;width:33%">
+        <div style="font-size:12.5px;color:${C.muted};font-weight:700">${l}</div>
+        <div style="font-size:26px;font-weight:600;color:${i === 2 ? C.accentInk : C.navy}">${v}</div></td>`).join('')}
   </tr></table>
 </td></tr>
 <tr><td>
@@ -103,9 +104,9 @@ const html = `<!doctype html><html lang="pl"><body style="margin:0;background:${
   ${h2('Największe spółki tygodnia') + table(top)}
   ${h2('Dzień po dniu') + `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">${dayLines}</table>`}
   ${h2('Kalendarz')}
-  <img src="cid:kalendarz" alt="Kalendarz wyników ${range}" width="680" style="display:block;width:100%;height:auto;border:1px solid ${C.rule}">
-  ${appUrl ? `<p style="margin:20px 0 0"><a href="${appUrl}" style="display:inline-block;background:${C.black};color:${C.paper};text-decoration:none;padding:10px 18px;border-radius:2px;font-size:14px;font-weight:600">Otwórz aplikację →</a></p>` : ''}
-  <p style="margin:28px 0 0;padding-top:12px;border-top:1px solid ${C.rule};font-size:12px;color:${C.charcoal}">Dane: Nasdaq. Godziny wg czasu nowojorskiego; daty mogą się jeszcze zmienić. Zrzut w pełnej rozdzielczości w załączniku.</p>
+  <img src="cid:kalendarz" alt="Kalendarz wyników ${range}" width="680" style="display:block;width:100%;height:auto;border:1px solid ${C.line}">
+  ${appUrl ? `<p style="margin:20px 0 0"><a href="${appUrl}" style="display:inline-block;background:${C.navy};color:${C.mist};text-decoration:none;padding:10px 18px;border-radius:2px;font-size:14px;font-weight:600">Otwórz aplikację →</a></p>` : ''}
+  <p style="margin:28px 0 0;padding-top:12px;border-top:1px solid ${C.line};font-size:12.5px;color:${C.muted}">Dane: Nasdaq. Godziny wg czasu nowojorskiego; daty mogą się jeszcze zmienić. Zrzut w pełnej rozdzielczości w załączniku.</p>
 </td></tr></table></td></tr></table></body></html>`;
 
 const text = [

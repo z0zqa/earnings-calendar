@@ -1,8 +1,9 @@
 # Kalendarz wyników
 
 Tygodniowy kalendarz publikacji wyników spółek z USA, pokazany logotypami — w stylu
-[Yahoo Finance Earnings Calendar](https://finance.yahoo.com/calendar/earnings/), ale w mojej palecie
-(cool ivory, charcoal, black, akcent deep sage). Co niedzielę przychodzi mail z podsumowaniem
+[Yahoo Finance Earnings Calendar](https://finance.yahoo.com/calendar/earnings/), ale w tym samym systemie
+co [Option Toolkit](https://github.com/z0zqa/opcje): granatowy pas, jasne tło robocze, linie zamiast kart,
+eucalyptus jako jedyny akcent, Archivo z cyframi tabelarycznymi i tryb ciemny wg ustawień systemu. Co niedzielę przychodzi mail z podsumowaniem
 nadchodzącego tygodnia i zrzutem ekranu z aplikacji.
 
 ![Tydzień w aplikacji](docs/preview.png)
@@ -13,7 +14,7 @@ nadchodzącego tygodnia i zrzutem ekranu z aplikacji.
 - Domyślnie 9 największych spółek (wg kapitalizacji) na sesję, reszta pod „+ N więcej”.
 - Logotypy w monochromie, kolor po najechaniu albo przełącznikiem **Kolor**.
 - Kliknięcie w spółkę: kapitalizacja, konsensus EPS, EPS rok temu, zmiana r/r, kwartał, liczba szacunków.
-- Watchlista (różowa obwódka), filtr **Watchlista**, wyszukiwarka, nawigacja strzałkami ← →.
+- Watchlista (obwódka w kolorze eucalyptus), filtr **Watchlista**, wyszukiwarka, nawigacja strzałkami ← →.
 - Działa z dysku (`index.html`) i na telefonie.
 
 Dane: publiczne API kalendarza Nasdaq (bez klucza). Logotypy: Financial Modeling Prep, zapasowo Parqet,
