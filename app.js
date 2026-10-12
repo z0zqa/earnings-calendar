@@ -5,12 +5,12 @@
   const params = new URLSearchParams(location.search);
   const SHOT = params.has('shot');
 
-  const DOW = ['Pon', 'Wt', 'Śr', 'Czw', 'Pt'];
-  const MONTHS = ['sty', 'lut', 'mar', 'kwi', 'maj', 'cze', 'lip', 'sie', 'wrz', 'paź', 'lis', 'gru'];
+  const DOW = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const SESSIONS = [
-    { key: 'bmo', label: 'Przed otwarciem', icon: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="3"/><path d="M8 1.5v1.6M8 12.9v1.6M1.5 8h1.6M12.9 8h1.6M3.4 3.4l1.1 1.1M11.5 11.5l1.1 1.1M3.4 12.6l1.1-1.1M11.5 4.5l1.1-1.1"/></svg>' },
-    { key: 'amc', label: 'Po zamknięciu', icon: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M13.5 9.6A5.6 5.6 0 0 1 6.4 2.5a5.6 5.6 0 1 0 7.1 7.1Z"/></svg>' },
-    { key: 'tns', label: 'Godzina nieustalona', icon: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="6"/><path d="M8 4.5V8l2.3 1.5"/></svg>' },
+    { key: 'bmo', label: 'Before open', icon: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="3"/><path d="M8 1.5v1.6M8 12.9v1.6M1.5 8h1.6M12.9 8h1.6M3.4 3.4l1.1 1.1M11.5 11.5l1.1 1.1M3.4 12.6l1.1-1.1M11.5 4.5l1.1-1.1"/></svg>' },
+    { key: 'amc', label: 'After close', icon: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M13.5 9.6A5.6 5.6 0 0 1 6.4 2.5a5.6 5.6 0 1 0 7.1 7.1Z"/></svg>' },
+    { key: 'tns', label: 'Time not supplied', icon: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="6"/><path d="M8 4.5V8l2.3 1.5"/></svg>' },
   ];
   const LOGOS = [
     (s) => `https://financialmodelingprep.com/image-stock/${encodeURIComponent(s)}.png`,
@@ -28,12 +28,12 @@
     return addDays(mondayOf(t), dow === 0 || dow === 6 ? 7 : 0);
   };
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
-  const fmtCap = (v) => v == null ? '—' : v >= 1e12 ? `$${(v / 1e12).toFixed(2)} bln` : v >= 1e9 ? `$${(v / 1e9).toFixed(1)} mld` : `$${(v / 1e6).toFixed(0)} mln`;
+  const fmtCap = (v) => v == null ? '—' : v >= 1e12 ? `$${(v / 1e12).toFixed(2)}T` : v >= 1e9 ? `$${(v / 1e9).toFixed(1)}B` : `$${(v / 1e6).toFixed(0)}M`;
   const fmtEps = (v) => v == null ? '—' : (v < 0 ? '−$' : '$') + Math.abs(v).toFixed(2);
   const fmtRange = (mon) => {
     const fri = addDays(mon, 4);
-    const a = `${mon.getUTCDate()}${mon.getUTCMonth() === fri.getUTCMonth() ? '' : ' ' + MONTHS[mon.getUTCMonth()]}`;
-    return `${a}–${fri.getUTCDate()} ${MONTHS[fri.getUTCMonth()]} ${fri.getUTCFullYear()}`;
+    const b = `${mon.getUTCMonth() === fri.getUTCMonth() ? '' : MONTHS[fri.getUTCMonth()] + ' '}${fri.getUTCDate()}`;
+    return `${MONTHS[mon.getUTCMonth()]} ${mon.getUTCDate()}–${b}, ${fri.getUTCFullYear()}`;
   };
 
   const state = {
@@ -67,7 +67,7 @@
     document.body.classList.toggle('color', state.color);
     $('colorToggle').setAttribute('aria-pressed', state.color);
     $('watchOnly').setAttribute('aria-pressed', state.watchOnly);
-    $('weekRange').textContent = `Tydzień ${fmtRange(state.monday)}`;
+    $('weekRange').textContent = `Week of ${fmtRange(state.monday)}`;
     byKey.clear();
 
     let total = 0, watchHits = [], biggest = null, busiest = null;
@@ -92,9 +92,9 @@
         const rest = list.length - shown.length;
         return `<section class="session session--${s.key}">
           <div class="session__head">${s.icon}<span>${s.label}</span><span class="session__n">${list.length}</span></div>
-          ${list.length ? `<div class="grid">${shown.map(tile).join('')}</div>` : '<div class="empty">Brak publikacji</div>'}
-          ${rest > 0 && !SHOT ? `<button class="more" data-k="${key}">+ ${rest} więcej</button>` : ''}
-          ${!rest && state.expanded.has(key) ? `<button class="more" data-k="${key}">Zwiń</button>` : ''}
+          ${list.length ? `<div class="grid">${shown.map(tile).join('')}</div>` : '<div class="empty">No reports</div>'}
+          ${rest > 0 && !SHOT ? `<button class="more" data-k="${key}">+ ${rest} more</button>` : ''}
+          ${!rest && state.expanded.has(key) ? `<button class="more" data-k="${key}">Show less</button>` : ''}
         </section>`;
       }).join('');
 
@@ -103,7 +103,7 @@
       cols.push(`<article class="day${cls}">
         <div class="day__head">
           <div><div class="day__dow">${DOW[i]}</div><div class="day__num">${d.getUTCDate()}</div></div>
-          <div class="day__count">${all ? `${all.length} spółek` : 'brak danych'}</div>
+          <div class="day__count">${all ? `${all.length} ${all.length === 1 ? 'company' : 'companies'}` : 'no data'}</div>
         </div>${all ? sessions : ''}
       </article>`);
     }
@@ -111,24 +111,24 @@
 
     const weekDates = new Set(watchHits);
     $('stats').innerHTML = [
-      ['Raportów w tygodniu', `${total}`],
-      ['Największa spółka', biggest ? `${esc(biggest.s)} <small>${fmtCap(biggest.mc)}</small>` : '—'],
-      ['Najgęstszy dzień', busiest ? `${DOW[busiest.i]} ${addDays(state.monday, busiest.i).getUTCDate()} <small>${busiest.n} spółek</small>` : '—'],
-      ['Z watchlisty', weekDates.size ? `<span class="stat__value--accent">${weekDates.size}</span> <small>${[...weekDates].slice(0, 6).map(esc).join(' · ')}</small>` : '0'],
+      ['Reports this week', `${total}`],
+      ['Largest company', biggest ? `${esc(biggest.s)} <small>${fmtCap(biggest.mc)}</small>` : '—'],
+      ['Busiest day', busiest ? `${DOW[busiest.i]} ${addDays(state.monday, busiest.i).getUTCDate()} <small>${busiest.n} companies</small>` : '—'],
+      ['From watchlist', weekDates.size ? `<span class="stat__value--accent">${weekDates.size}</span> <small>${[...weekDates].slice(0, 6).map(esc).join(' · ')}</small>` : '0'],
     ].map(([l, v]) => `<div class="stat"><div class="stat__label">${l}</div><div class="stat__value">${v}</div></div>`).join('');
 
     $('updated').textContent = DATA.updated
-      ? `Zaktualizowano ${new Date(DATA.updated).toLocaleString('pl-PL', { dateStyle: 'medium', timeStyle: 'short' })}`
-      : 'Brak danych — uruchom npm run fetch';
+      ? `Updated ${new Date(DATA.updated).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}`
+      : 'No data yet — run npm run fetch';
   }
 
-  // Łańcuch logotypów: FMP → Parqet → monogram.
+  // Logo chain: FMP → Parqet → monogram.
   document.addEventListener('error', (e) => {
     const img = e.target;
     if (!(img instanceof HTMLImageElement) || !img.closest('.tile')) return;
     const s = img.closest('.tile').dataset.s;
     const next = Number(img.dataset.i) + 1;
-    // Parqet nie wysyła nagłówków CORS, więc bez crossorigin.
+    // Parqet sends no CORS headers, so drop crossorigin for it.
     if (next < LOGOS.length) { img.removeAttribute('crossorigin'); img.dataset.i = next; img.src = LOGOS[next](s); return; }
     const mono = document.createElement('span');
     mono.className = 'tile__mono';
@@ -136,7 +136,7 @@
     img.replaceWith(mono);
   }, true);
 
-  // Część logotypów FMP to białe znaki na przezroczystym tle — dostają ciemny kafelek.
+  // Some FMP logos are white marks on a transparent background; they get a dark tile.
   const probe = document.createElement('canvas');
   probe.width = probe.height = 32;
   const ctx = probe.getContext('2d', { willReadFrequently: true });
@@ -161,12 +161,12 @@
     const r = byKey.get(btn.dataset.s);
     const diff = r.eps != null && r.ly != null && r.ly !== 0 ? (r.eps - r.ly) / Math.abs(r.ly) : null;
     pop.innerHTML = `<h3>${esc(r.s)}</h3><p class="pop__name">${esc(r.n)}</p><dl>
-      <dt>Kapitalizacja</dt><dd>${fmtCap(r.mc)}</dd>
-      <dt>Konsensus EPS</dt><dd>${fmtEps(r.eps)}</dd>
-      <dt>EPS rok temu</dt><dd>${fmtEps(r.ly)}</dd>
-      <dt>Zmiana r/r</dt><dd class="${diff == null ? '' : diff >= 0 ? 'pos' : 'neg'}">${diff == null ? '—' : `${diff >= 0 ? '+' : '−'}${Math.abs(diff * 100).toFixed(0)}%`}</dd>
-      <dt>Kwartał fiskalny</dt><dd>${esc(r.q ?? '—')}</dd>
-      <dt>Liczba szacunków</dt><dd>${r.ne ?? '—'}</dd></dl>`;
+      <dt>Market cap</dt><dd>${fmtCap(r.mc)}</dd>
+      <dt>EPS consensus</dt><dd>${fmtEps(r.eps)}</dd>
+      <dt>EPS a year ago</dt><dd>${fmtEps(r.ly)}</dd>
+      <dt>Change y/y</dt><dd class="${diff == null ? '' : diff >= 0 ? 'pos' : 'neg'}">${diff == null ? '—' : `${diff >= 0 ? '+' : '−'}${Math.abs(diff * 100).toFixed(0)}%`}</dd>
+      <dt>Fiscal quarter</dt><dd>${esc(r.q ?? '—')}</dd>
+      <dt>Estimates</dt><dd>${r.ne ?? '—'}</dd></dl>`;
     pop.hidden = false;
     const b = btn.getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight;
     const left = Math.min(Math.max(8, b.left + b.width / 2 - w / 2), innerWidth - w - 8);

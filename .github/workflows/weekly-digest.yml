@@ -1,15 +1,15 @@
-name: Niedzielny mail
+name: Sunday email
 
 on:
   schedule:
-    - cron: '7 16 * * 0'   # niedziela, 18:07 latem / 17:07 zimą (czas polski)
+    - cron: '7 16 * * 0'   # Sunday, 18:07 summer / 17:07 winter (Warsaw time)
   workflow_dispatch:
     inputs:
       week:
-        description: 'Poniedziałek tygodnia (YYYY-MM-DD); puste = nadchodzący tydzień'
+        description: 'Monday of the week (YYYY-MM-DD); empty = the coming week'
         required: false
       dry_run:
-        description: 'Tylko zbuduj maila, nie wysyłaj'
+        description: 'Build the email only, do not send'
         type: boolean
         default: false
 
@@ -32,7 +32,7 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: node scripts/fetch.mjs ${{ inputs.week }}
-      - name: Zrzut i mail
+      - name: Screenshot and email
         env:
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
@@ -47,10 +47,10 @@ jobs:
           name: digest
           path: out/
           if-no-files-found: ignore
-      - name: Zapisz dane
+      - name: Commit data
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data config.js
-          git diff --cached --quiet || git commit -m "Dane: $(date -u +%F)"
+          git diff --cached --quiet || git commit -m "Data: $(date -u +%F)"
           git push

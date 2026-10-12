@@ -1,5 +1,5 @@
-// Pobiera kalendarz wyników z Nasdaq (bez klucza API) i zapisuje data/earnings.{json,js}.
-// Użycie: node scripts/fetch.mjs [YYYY-MM-DD]  (data dowolnego dnia w tygodniu, wokół którego pobieramy)
+// Fetches the earnings calendar from Nasdaq (no API key) and writes data/earnings.{json,js}.
+// Usage: node scripts/fetch.mjs [YYYY-MM-DD]  (any day in the week to fetch around)
 import { config, loadData, saveData, focusMonday, mondayOf, parseIso, addDays, iso } from './lib.mjs';
 
 const TIME = { 'time-pre-market': 'bmo', 'time-after-hours': 'amc' };
@@ -56,22 +56,22 @@ for (let d = first; d < last; d = addDays(d, 1)) {
   try {
     data.days[date] = await fetchDay(date);
     fetched++;
-    console.log(`${date}  ${String(data.days[date].length).padStart(4)} spółek`);
+    console.log(`${date}  ${String(data.days[date].length).padStart(4)} companies`);
   } catch (err) {
     failed++;
-    console.warn(`! ${err.message} — zostawiam poprzednie dane`);
+    console.warn(`! ${err.message} — keeping previous data`);
   }
 }
 
-// Usuń dni starsze niż keepWeeks tygodni.
+// Drop days older than keepWeeks weeks.
 const cutoff = iso(addDays(anchor, -7 * config.keepWeeks));
 for (const date of Object.keys(data.days)) if (date < cutoff) delete data.days[date];
 data.days = Object.fromEntries(Object.entries(data.days).sort(([a], [b]) => a.localeCompare(b)));
 data.updated = new Date().toISOString();
 
 if (!fetched) {
-  console.error('Nie udało się pobrać żadnego dnia.');
+  console.error('Could not fetch any day.');
   process.exit(1);
 }
 saveData(data);
-console.log(`Zapisano ${fetched} dni${failed ? `, ${failed} błędów` : ''}.`);
+console.log(`Saved ${fetched} days${failed ? `, ${failed} failed` : ''}.`);

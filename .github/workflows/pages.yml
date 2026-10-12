@@ -1,12 +1,12 @@
-# Publikuje aplikację na GitHub Pages. Włącz: Settings → Pages → Source: GitHub Actions,
-# potem Settings → Variables → PAGES_ENABLED = true. (Pages dla prywatnych repo wymaga GitHub Pro.)
-name: Publikacja
+# Publishes the app to GitHub Pages. Enable: Settings → Pages → Source: GitHub Actions,
+# then Settings → Variables → PAGES_ENABLED = true. (Pages on a private repo needs GitHub Pro.)
+name: Publish
 
 on:
   push:
     branches: [main]
   workflow_run:
-    workflows: ['Odśwież dane', 'Niedzielny mail']
+    workflows: ['Refresh data', 'Sunday email']
     types: [completed]
   workflow_dispatch:
 
@@ -30,7 +30,7 @@ jobs:
       - uses: actions/checkout@v5
         with:
           ref: main
-      - name: Przygotuj stronę
+      - name: Prepare site
         run: mkdir _site && cp -r index.html app.js styles.css config.js data _site/
       - uses: actions/upload-pages-artifact@v3
       - id: deployment
