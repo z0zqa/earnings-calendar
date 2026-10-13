@@ -20,6 +20,22 @@ Every Sunday an email arrives with a summary of the coming week and a screenshot
 Data: Nasdaq's public earnings-calendar API (no key). Logos: Financial Modeling Prep, then Parqet, then a
 monogram of the ticker when neither has one.
 
+## Logo audit
+
+Logos are matched by ticker, so a provider can return the wrong image (an old logo after a rebrand, a promo
+banner, another company's mark). Open `index.html?audit` (or `?audit=all` for every company, plus
+`&week=YYYY-MM-DD`) to see every logo of the week next to its company name, with chips showing where it came
+from and what the app did to it:
+
+- **FMP / Parqet / Monogram / Pinned URL**: the source actually shown.
+- **dark tile**: a white logo on a transparent background, placed on navy so it stays visible.
+- **cropped**: a logo lost in padding, cropped to its mark.
+- **pinned**: overridden in `config.json`.
+
+When a logo is wrong, pin a source in `config.json` → `logoOverrides`: `"parqet"`, `"none"` (monogram) or an
+image URL, then run `npm run fetch`. The Sunday workflow saves the audit sheet for the coming week as
+`out/logo-audit-*.png` in its `digest` artifact.
+
 ## Run locally
 
 ```bash

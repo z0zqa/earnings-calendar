@@ -4,6 +4,7 @@
   const WATCH = new Set(CONFIG.watchlist);
   const params = new URLSearchParams(location.search);
   const SHOT = params.has('shot');
+  const AUDIT = params.has('audit');
 
   const DOW = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
   const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -12,10 +13,19 @@
     { key: 'amc', label: 'After close', icon: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M13.5 9.6A5.6 5.6 0 0 1 6.4 2.5a5.6 5.6 0 1 0 7.1 7.1Z"/></svg>' },
     { key: 'tns', label: 'Time not supplied', icon: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="6"/><path d="M8 4.5V8l2.3 1.5"/></svg>' },
   ];
-  const LOGOS = [
-    (s) => `https://financialmodelingprep.com/image-stock/${encodeURIComponent(s)}.png`,
-    (s) => `https://assets.parqet.com/logos/symbol/${encodeURIComponent(s)}?format=png`,
-  ];
+  const FMP = (t) => `https://financialmodelingprep.com/image-stock/${encodeURIComponent(t)}.png`;
+  const PARQET = (t) => `https://assets.parqet.com/logos/symbol/${encodeURIComponent(t)}?format=png`;
+  // Logo chain: FMP → Parqet → monogram, unless config.json pins a source after a logo audit
+  // ("parqet", "none" for the monogram, or an image URL).
+  const OVERRIDES = CONFIG.logoOverrides ?? {};
+  function logoSources(t) {
+    const o = OVERRIDES[t];
+    if (o === 'none') return [];
+    if (o === 'parqet') return [{ src: 'parqet', url: PARQET(t) }];
+    if (o) return [{ src: 'override', url: o }];
+    return [{ src: 'fmp', url: FMP(t) }, { src: 'parqet', url: PARQET(t) }];
+  }
+  const monogram = (t) => `<span class="tile__mono">${esc(t.replace(/[^A-Z0-9]/g, '').slice(0, 4))}</span>`;
 
   const $ = (id) => document.getElementById(id);
   const iso = (d) => d.toISOString().slice(0, 10);
@@ -57,13 +67,19 @@
   function tile(r) {
     byKey.set(r.s, r);
     const watch = WATCH.has(r.s) ? ' tile--watch' : '';
-    return `<button class="tile${watch}" data-s="${esc(r.s)}" title="${esc(r.n)}">
-      <span class="tile__logo"><img alt="" crossorigin="anonymous" loading="${SHOT ? 'eager' : 'lazy'}" data-i="0" src="${LOGOS[0](r.s)}"></span>
+    const first = logoSources(r.s)[0];
+    // FMP is loaded with CORS so the logo can be inspected (white marks, padding); Parqet sends no CORS headers.
+    const img = first
+      ? `<img alt="" ${first.src === 'fmp' ? 'crossorigin="anonymous"' : ''} loading="${SHOT || AUDIT ? 'eager' : 'lazy'}" data-i="0" src="${esc(first.url)}">`
+      : monogram(r.s);
+    return `<button class="tile${watch}" data-s="${esc(r.s)}" data-src="${first ? first.src : 'monogram'}" title="${esc(r.n)}">
+      <span class="tile__logo">${img}</span>
       <span class="tile__ticker">${esc(r.s)}</span>
     </button>`;
   }
 
   function render() {
+    if (AUDIT) { renderAudit(); updateAuditFlags(); return; }
     document.body.classList.toggle('color', state.color);
     $('colorToggle').setAttribute('aria-pressed', state.color);
     $('watchOnly').setAttribute('aria-pressed', state.watchOnly);
@@ -122,38 +138,66 @@
       : 'No data yet — run npm run fetch';
   }
 
-  // Logo chain: FMP → Parqet → monogram.
   document.addEventListener('error', (e) => {
     const img = e.target;
-    if (!(img instanceof HTMLImageElement) || !img.closest('.tile')) return;
-    const s = img.closest('.tile').dataset.s;
-    const next = Number(img.dataset.i) + 1;
-    // Parqet sends no CORS headers, so drop crossorigin for it.
-    if (next < LOGOS.length) { img.removeAttribute('crossorigin'); img.dataset.i = next; img.src = LOGOS[next](s); return; }
-    const mono = document.createElement('span');
-    mono.className = 'tile__mono';
-    mono.textContent = s.replace(/[^A-Z0-9]/g, '').slice(0, 4);
-    img.replaceWith(mono);
+    const tileEl = img instanceof HTMLImageElement && img.closest('.tile');
+    if (!tileEl) return;
+    const sources = logoSources(tileEl.dataset.s);
+    const next = sources[Number(img.dataset.i) + 1];
+    if (next) {
+      if (next.src !== 'fmp') img.removeAttribute('crossorigin');
+      img.dataset.i = Number(img.dataset.i) + 1;
+      tileEl.dataset.src = next.src;
+      img.src = next.url;
+      return;
+    }
+    tileEl.dataset.src = 'monogram';
+    img.outerHTML = monogram(tileEl.dataset.s);
   }, true);
 
-  // Some FMP logos are white marks on a transparent background; they get a dark tile.
+  // Inspect FMP logos once loaded: white marks on a transparent background (wholly, or in large part
+  // like CAT's lettering) get a dark tile, and logos lost in padding are cropped to their ink.
   const probe = document.createElement('canvas');
-  probe.width = probe.height = 32;
   const ctx = probe.getContext('2d', { willReadFrequently: true });
   document.addEventListener('load', (e) => {
     const img = e.target;
-    if (!(img instanceof HTMLImageElement) || !img.closest('.tile') || !img.crossOrigin) return;
+    const tileEl = img instanceof HTMLImageElement && img.closest('.tile');
+    if (!tileEl || !img.crossOrigin || img.dataset.checked) return;
+    img.dataset.checked = '1';
     try {
-      ctx.clearRect(0, 0, 32, 32);
-      ctx.drawImage(img, 0, 0, 32, 32);
-      const px = ctx.getImageData(0, 0, 32, 32).data;
-      let n = 0, lum = 0, clear = 0;
-      for (let i = 0; i < px.length; i += 4) {
-        if (px[i + 3] < 40) { clear++; continue; }
-        n++; lum += 0.2126 * px[i] + 0.7152 * px[i + 1] + 0.0722 * px[i + 2];
+      const w = img.naturalWidth, h = img.naturalHeight;
+      probe.width = w; probe.height = h;
+      ctx.clearRect(0, 0, w, h);
+      ctx.drawImage(img, 0, 0);
+      const px = ctx.getImageData(0, 0, w, h).data;
+      let clear = 0;
+      for (let i = 3; i < px.length; i += 4) if (px[i] < 40) clear++;
+      const transparent = clear > px.length / 4 * 0.06;
+      let n = 0, lum = 0, white = 0, x0 = w, y0 = h, x1 = -1, y1 = -1;
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+        const i = (y * w + x) * 4;
+        if (px[i + 3] < 40) continue;
+        const L = 0.2126 * px[i] + 0.7152 * px[i + 1] + 0.0722 * px[i + 2];
+        n++; lum += L; if (L > 225) white++;
+        if (!transparent && L > 235) continue; // white background, not ink
+        if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y;
       }
-      if (n && clear > 64 && lum / n > 215) img.parentElement.classList.add('tile__logo--light');
+      if (n && transparent && (lum / n > 215 || white / n > 0.3)) {
+        img.parentElement.classList.add('tile__logo--light');
+        tileEl.dataset.light = '1';
+      }
+      const side = Math.max(x1 - x0 + 1, y1 - y0 + 1);
+      if (x1 >= 0 && side < 0.7 * Math.max(w, h)) {
+        const pad = Math.round(side * 0.06), sz = side + 2 * pad;
+        const out = document.createElement('canvas');
+        out.width = out.height = sz;
+        out.getContext('2d').drawImage(probe, x0 - pad - (side - (x1 - x0 + 1)) / 2, y0 - pad - (side - (y1 - y0 + 1)) / 2,
+          sz, sz, 0, 0, sz, sz);
+        img.src = out.toDataURL();
+        tileEl.dataset.trim = '1';
+      }
     } catch {}
+    tileEl.dispatchEvent(new Event('logo', { bubbles: true }));
   }, true);
 
   const pop = $('pop');
@@ -213,6 +257,48 @@
     render();
   };
 
+  // Logo audit (?audit, or ?audit=all for every company): each logo of the week with its company name,
+  // where it came from and what the app did to it, so a wrong logo is spotted in one scan.
+  const SRC_LABEL = { fmp: 'FMP', parqet: 'Parqet', override: 'Pinned URL', monogram: 'Monogram' };
+  function renderAudit() {
+    document.body.classList.add('audit');
+    const all = params.get('audit') === 'all';
+    const seen = new Map();
+    for (let i = 0; i < 5; i++) {
+      const rows = DATA.days[iso(addDays(state.monday, i))] ?? [];
+      for (const key of ['bmo', 'amc', 'tns']) {
+        const list = rows.filter((r) => r.t === key);
+        for (const r of all ? list : list.slice(0, CONFIG.perSession)) seen.set(r.s, r);
+      }
+      for (const r of rows) if (WATCH.has(r.s)) seen.set(r.s, r);
+    }
+    const rows = [...seen.values()].sort((a, b) => a.s.localeCompare(b.s));
+    $('weekRange').textContent = `Logo audit · week of ${fmtRange(state.monday)} · ${rows.length} companies`;
+    $('stats').innerHTML = '';
+    $('board').innerHTML = `<div class="audit-grid">${rows.map((r) => `<div class="audit-card">
+      ${tile(r)}
+      <div class="audit-card__name">${esc(r.n)}</div>
+      <div class="audit-card__flags" data-for="${esc(r.s)}"></div></div>`).join('')}</div>`;
+  }
+  function updateAuditFlags() {
+    for (const el of document.querySelectorAll('.audit-card__flags')) {
+      const t = el.previousElementSibling.previousElementSibling.dataset;
+      const flags = [SRC_LABEL[t.src] ?? t.src];
+      if (OVERRIDES[t.s]) flags.push('pinned');
+      if (t.light) flags.push('dark tile');
+      if (t.trim) flags.push('cropped');
+      el.innerHTML = flags.map((f, i) => `<span class="chip${i === 0 && t.src !== 'fmp' ? ' chip--alt' : ''}">${f}</span>`).join('');
+    }
+  }
+
   if (SHOT) document.body.classList.add('shot');
-  render();
+  if (AUDIT) {
+    renderAudit();
+    updateAuditFlags();
+    document.addEventListener('logo', updateAuditFlags);
+    document.addEventListener('error', () => setTimeout(updateAuditFlags), true);
+    document.addEventListener('load', () => setTimeout(updateAuditFlags), true);
+  } else {
+    render();
+  }
 })();

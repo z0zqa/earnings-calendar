@@ -57,6 +57,14 @@ try {
     .catch(() => console.warn('! Some logos did not load within 30 s'));
   await page.evaluate(() => document.fonts.ready);
   await page.locator('body').screenshot({ path: shotPath });
+
+  // Logo audit sheet for the same week (kept as a workflow artifact, not emailed).
+  const audit = await browser.newPage({ viewport: { width: 1320, height: 900 } });
+  await audit.goto(`${pathToFileURL(join(ROOT, 'index.html')).href}?week=${week}&audit`, { waitUntil: 'load' });
+  await audit.waitForFunction(() => [...document.querySelectorAll('.tile img')].every((i) => i.complete && i.naturalWidth > 0), null, { timeout: 30000 })
+    .catch(() => {});
+  await audit.waitForTimeout(500);
+  await audit.screenshot({ path: join(ROOT, 'out', `logo-audit-${week}.png`), fullPage: true });
 } finally {
   await browser.close();
 }
