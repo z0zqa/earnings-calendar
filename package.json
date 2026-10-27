@@ -9,10 +9,15 @@
     "digest": "node scripts/digest.mjs",
     "digest:dry": "node scripts/digest.mjs --dry-run",
     "test": "node --test test/*.test.mjs",
-    "test:unit": "node --test test/lib.test.mjs"
+    "test:unit": "node --test test/lib.test.mjs",
+    "record:tour": "node scripts/record-tour.mjs"
   },
   "dependencies": {
     "nodemailer": "^10.2.1",
     "playwright": "1.56.1"
+  },
+  "devDependencies": {
+    "gifenc": "^1.0.3",
+    "pngjs": "^7.0.0"
   }
 }
