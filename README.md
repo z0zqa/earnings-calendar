@@ -8,7 +8,7 @@ companies I care about somewhere in the middle. This shows the week the way I re
 largest companies first, split by day and by session, with my watchlist marked. The data refreshes itself every
 weekday, and every Sunday the coming week arrives by email with a screenshot of the calendar.
 
-![A tour of the app: the week of Oct 26–30, 2026, company details, colour and watchlist views, search, an expanded session, weeks ahead with the estimates notice, and the dark theme](docs/tour.gif)
+![A tour of the app: the week of Oct 26–30, 2026, company details, the watchlist view, search, an expanded session, weeks ahead with the estimates notice, and the dark theme](docs/tour.gif)
 
 ## What it does
 
