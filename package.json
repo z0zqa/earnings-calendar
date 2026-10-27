@@ -1,0 +1,18 @@
+{
+  "name": "earnings-calendar",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "fetch": "node scripts/fetch.mjs",
+    "start": "npx --yes serve -l 4321 .",
+    "digest": "node scripts/digest.mjs",
+    "digest:dry": "node scripts/digest.mjs --dry-run",
+    "test": "node --test test/*.test.mjs",
+    "test:unit": "node --test test/lib.test.mjs"
+  },
+  "dependencies": {
+    "nodemailer": "^10.2.1",
+    "playwright": "1.56.1"
+  }
+}

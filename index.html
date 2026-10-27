@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Earnings Calendar</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="band">
+    <div class="band__inner">
+      <div class="masthead">
+        <h1 class="wordmark"><span>Earnings</span> Calendar</h1>
+        <p class="subtitle" id="weekRange"></p>
+      </div>
+      <div class="controls" id="controls">
+        <div class="nav">
+          <button class="btn btn--icon" id="prev" aria-label="Previous week">‹</button>
+          <button class="btn" id="today">This week</button>
+          <button class="btn btn--icon" id="next" aria-label="Next week">›</button>
+        </div>
+        <input class="search" id="search" type="search" placeholder="Search ticker or company" aria-label="Search ticker or company" autocomplete="off">
+        <div class="seg" role="group" aria-label="View">
+          <button class="seg__btn" id="watchOnly" aria-pressed="false">Watchlist</button>
+          <button class="seg__btn" id="colorToggle" aria-pressed="false">Color</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="page">
+
+  <main>
+    <p class="notice" id="notice" role="status" hidden></p>
+    <section class="stats" id="stats" aria-label="Week summary"></section>
+    <div class="board" id="board"></div>
+  </main>
+
+  <footer class="foot">
+    <span id="updated"></span>
+    <span>Data: Nasdaq · logos: FMP / Parqet · times are US Eastern</span>
+  </footer>
+
+  </div>
+
+  <div class="pop" id="pop" role="dialog" aria-labelledby="popTitle" tabindex="-1" hidden></div>
+
+  <script src="config.js"></script>
+  <script src="data/earnings.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
