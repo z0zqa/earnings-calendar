@@ -22,7 +22,8 @@ concurrency:
 
 jobs:
   digest:
-    runs-on: ubuntu-latest
+    # Playwright 1.56 has no Chromium build for Ubuntu 26.04, which ubuntu-latest now is.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
