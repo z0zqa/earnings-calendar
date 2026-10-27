@@ -20,3 +20,9 @@ Parqet alone would have been wrong more often (COR → CoreSite, TEAM → Ormat,
 SPCX → AXS, APD → aprendere, NOW → a leaf), so FMP stays the primary source.
 
 New companies appear every week; the Sunday workflow saves `out/logo-audit-<week>.png` (see README).
+
+## Follow-up, October 27, 2026
+
+77 companies new to the default view since the first audit. Fixed: **CORT** (FMP had a promo image) and **WGS**
+(old Sema4 logo) pinned to Parqet; **SYRE** (old Aeglea logo in both sources) set to a monogram. Still to
+confirm: **ABEV** (red "a") and **ETR** (pink "e").

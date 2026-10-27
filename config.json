@@ -30,6 +30,7 @@
     "CAT": "parqet",
     "CDNS": "parqet",
     "CHTR": "parqet",
+    "CORT": "parqet",
     "FLG": "parqet",
     "IBN": "parqet",
     "LYV": "parqet",
@@ -39,9 +40,11 @@
     "TRI": "parqet",
     "VTR": "parqet",
     "WDC": "parqet",
+    "WGS": "parqet",
     "AXSM": "none",
     "BNY": "none",
     "LKFN": "none",
+    "SYRE": "none",
     "UNTY": "none"
   }
 }

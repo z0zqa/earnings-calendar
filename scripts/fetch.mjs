@@ -1,15 +1,6 @@
-// Fetches the earnings calendar from Nasdaq (no API key) and writes data/earnings.{json,js}.
+// Fetches the earnings calendar from Nasdaq (no API key) and writes data/earnings.js.
 // Usage: node scripts/fetch.mjs [YYYY-MM-DD]  (any day in the week to fetch around)
-import { config, loadData, saveData, focusMonday, mondayOf, parseIso, addDays, iso } from './lib.mjs';
-
-const TIME = { 'time-pre-market': 'bmo', 'time-after-hours': 'amc' };
-
-const money = (s) => {
-  if (!s || /n\/a/i.test(s)) return null;
-  const neg = s.includes('(') || s.includes('-');
-  const v = Number(s.replace(/[^0-9.]/g, ''));
-  return Number.isFinite(v) && s.match(/\d/) ? (neg ? -v : v) : null;
-};
+import { config, loadData, saveData, focusMonday, parseWeekArg, addDays, iso, parseRows } from './lib.mjs';
 
 async function fetchDay(date, attempt = 1) {
   const url = `https://api.nasdaq.com/api/calendar/earnings?date=${date}`;
@@ -25,16 +16,7 @@ async function fetchDay(date, attempt = 1) {
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const body = await res.json();
-    return (body?.data?.rows ?? []).map((r) => ({
-      s: r.symbol.trim(),
-      n: r.name.trim(),
-      t: TIME[r.time] ?? 'tns',
-      mc: money(r.marketCap),
-      eps: money(r.epsForecast),
-      ly: money(r.lastYearEPS),
-      q: r.fiscalQuarterEnding || null,
-      ne: Number(r.noOfEsts) || null,
-    })).sort((a, b) => (b.mc ?? 0) - (a.mc ?? 0));
+    return parseRows(body?.data?.rows);
   } catch (err) {
     if (attempt >= 4) throw new Error(`${date}: ${err.message}`);
     await new Promise((r) => setTimeout(r, 1000 * 2 ** attempt));
@@ -42,7 +24,7 @@ async function fetchDay(date, attempt = 1) {
   }
 }
 
-const anchor = process.argv[2] ? mondayOf(parseIso(process.argv[2])) : focusMonday();
+const anchor = process.argv[2] ? parseWeekArg(process.argv[2]) : focusMonday();
 const first = addDays(anchor, -7 * config.weeksBack);
 const last = addDays(anchor, 7 * (config.weeksAhead + 1));
 
@@ -54,7 +36,10 @@ for (let d = first; d < last; d = addDays(d, 1)) {
   if (dow === 0 || dow === 6) continue;
   const date = iso(d);
   try {
-    data.days[date] = await fetchDay(date);
+    const rows = await fetchDay(date);
+    // An empty answer for a day that had many reports is a Nasdaq hiccup, not a cancelled day.
+    if (!rows.length && (data.days[date]?.length ?? 0) > 20) throw new Error(`${date}: empty response`);
+    data.days[date] = rows;
     fetched++;
     console.log(`${date}  ${String(data.days[date].length).padStart(4)} companies`);
   } catch (err) {

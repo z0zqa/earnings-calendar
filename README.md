@@ -15,7 +15,9 @@ Every Sunday an email arrives with a summary of the coming week and a screenshot
 - Logos in monochrome, in colour on hover or with the **Color** toggle.
 - Click a company for market cap, EPS consensus, EPS a year ago, change y/y, fiscal quarter and number of estimates.
 - Watchlist companies get a eucalyptus outline; a **Watchlist** filter, search, and ← → keys to change week.
-- Opens straight from disk (`index.html`) and works on a phone.
+- A notice when the data is more than a day old, and on weeks far enough ahead that Nasdaq's dates are still estimates.
+- "Today" follows New York time, the time zone the report dates are in.
+- Opens straight from disk (`index.html`) and works on a phone, with the keyboard and with a screen reader.
 
 Data: Nasdaq's public earnings-calendar API (no key). Logos: Financial Modeling Prep, then Parqet, then a
 monogram of the ticker when neither has one.
@@ -43,7 +45,11 @@ npm install
 npm run fetch        # one week back + three weeks ahead into data/
 open index.html      # or: npm start → http://localhost:4321
 npm run digest:dry   # builds the email and screenshot into out/ without sending
+npm test             # unit tests for the data scripts + the app in headless Chromium
 ```
+
+Data lives in `data/earnings.js`, one company per line, so the daily data commits stay small. CI runs the tests
+on every push and pull request.
 
 ## Configuration (`config.json`)
 

@@ -21,7 +21,8 @@ concurrency:
 
 jobs:
   deploy:
-    if: vars.PAGES_ENABLED == 'true'
+    # Skip after a failed refresh, so a broken run never replaces a good page.
+    if: vars.PAGES_ENABLED == 'true' && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -31,7 +32,7 @@ jobs:
         with:
           ref: main
       - name: Prepare site
-        run: mkdir _site && cp -r index.html app.js styles.css config.js data _site/
+        run: mkdir -p _site/data && cp index.html app.js styles.css config.js _site/ && cp data/earnings.js _site/data/
       - uses: actions/upload-pages-artifact@v3
       - id: deployment
         uses: actions/deploy-pages@v4

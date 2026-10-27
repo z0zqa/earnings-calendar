@@ -30,8 +30,12 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm run test:unit
       - run: npx playwright install --with-deps chromium
-      - run: node scripts/fetch.mjs ${{ inputs.week }}
+      - name: Fetch data
+        env:
+          WEEK: ${{ inputs.week }}
+        run: node scripts/fetch.mjs ${WEEK:+"$WEEK"}
       - name: Screenshot and email
         env:
           SMTP_USER: ${{ secrets.SMTP_USER }}
@@ -40,7 +44,10 @@ jobs:
           SMTP_HOST: ${{ vars.SMTP_HOST }}
           SMTP_PORT: ${{ vars.SMTP_PORT }}
           APP_URL: ${{ vars.APP_URL }}
-        run: node scripts/digest.mjs ${{ inputs.week && format('--week {0}', inputs.week) || '' }} ${{ inputs.dry_run && '--dry-run' || '' }}
+          WEEK: ${{ inputs.week }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        # Inputs go through env, never straight into the shell line.
+        run: node scripts/digest.mjs ${WEEK:+--week "$WEEK"} $([ "$DRY_RUN" = true ] && echo --dry-run)
       - uses: actions/upload-artifact@v4
         if: always()
         with:

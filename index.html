@@ -14,7 +14,7 @@
   <header class="band">
     <div class="band__inner">
       <div class="masthead">
-        <p class="wordmark"><span>Earnings</span> Calendar</p>
+        <h1 class="wordmark"><span>Earnings</span> Calendar</h1>
         <p class="subtitle" id="weekRange"></p>
       </div>
       <div class="controls" id="controls">
@@ -23,7 +23,7 @@
           <button class="btn" id="today">This week</button>
           <button class="btn btn--icon" id="next" aria-label="Next week">›</button>
         </div>
-        <input class="search" id="search" type="search" placeholder="Search ticker or company" autocomplete="off">
+        <input class="search" id="search" type="search" placeholder="Search ticker or company" aria-label="Search ticker or company" autocomplete="off">
         <div class="seg" role="group" aria-label="View">
           <button class="seg__btn" id="watchOnly" aria-pressed="false">Watchlist</button>
           <button class="seg__btn" id="colorToggle" aria-pressed="false">Color</button>
@@ -34,8 +34,11 @@
 
   <div class="page">
 
-  <section class="stats" id="stats"></section>
-  <main class="board" id="board"></main>
+  <main>
+    <p class="notice" id="notice" role="status" hidden></p>
+    <section class="stats" id="stats" aria-label="Week summary"></section>
+    <div class="board" id="board"></div>
+  </main>
 
   <footer class="foot">
     <span id="updated"></span>
@@ -44,7 +47,7 @@
 
   </div>
 
-  <div class="pop" id="pop" role="dialog" hidden></div>
+  <div class="pop" id="pop" role="dialog" aria-labelledby="popTitle" tabindex="-1" hidden></div>
 
   <script src="config.js"></script>
   <script src="data/earnings.js"></script>

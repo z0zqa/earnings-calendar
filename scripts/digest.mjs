@@ -7,12 +7,12 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { chromium } from 'playwright';
 import nodemailer from 'nodemailer';
-import { ROOT, config, loadData, focusMonday, mondayOf, parseIso, addDays, iso } from './lib.mjs';
+import { ROOT, config, loadData, focusMonday, parseWeekArg, addDays, iso } from './lib.mjs';
 
 const args = process.argv.slice(2);
 const dryRun = args.includes('--dry-run');
 const weekArg = args.includes('--week') ? args[args.indexOf('--week') + 1] : null;
-const monday = weekArg ? mondayOf(parseIso(weekArg)) : focusMonday();
+const monday = weekArg ? parseWeekArg(weekArg) : focusMonday();
 const week = iso(monday);
 
 const DOW = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];

@@ -14,6 +14,7 @@
   --accent-ink: #43615B;
   --accent-soft: #DFE8E6;
   --put: #8A4F5C;         /* claret: declines only */
+  --put-soft: #F1E3E6; --put-ink: #7E4652;
   --bar: #172236; --bar-ink: #EEF1F3; --bar-muted: #B7BEC7; --bar-line: #2A3750; --bar-control: #7D8CA0;
   --tile: #FFFFFF;        /* tiles stay light in both themes so logos stay legible */
   --tile-line: #D5DBE1;
@@ -27,7 +28,7 @@
   :root:not([data-theme='light']) {
     --ground: #0F1726; --rail: #172236; --field: #1C2840;
     --ink: #EEF1F3; --head: #EEF1F3; --muted: #A7B1BD; --line: #2A3650; --control: #7D8CA0; --rule: #B7BEC7;
-    --accent: #7FA29B; --accent-ink: #8DB0A9; --accent-soft: #1D2D33; --put: #C9939D;
+    --accent: #7FA29B; --accent-ink: #8DB0A9; --accent-soft: #1D2D33; --put: #C9939D; --put-soft: #2E2230; --put-ink: #C9939D;
     --bar: #0B1220; --bar-line: #24324A;
     --tile: #EEF1F3; --tile-line: #2A3650; --tile-dark: #2A3650;
     --pop: #EEF1F3; --pop-ink: #172236; --pop-muted: #56657A; --pop-pos: #43615B; --pop-neg: #7E4652;
@@ -37,7 +38,7 @@
 :root[data-theme='dark'] {
   --ground: #0F1726; --rail: #172236; --field: #1C2840;
   --ink: #EEF1F3; --head: #EEF1F3; --muted: #A7B1BD; --line: #2A3650; --control: #7D8CA0; --rule: #B7BEC7;
-  --accent: #7FA29B; --accent-ink: #8DB0A9; --accent-soft: #1D2D33; --put: #C9939D;
+  --accent: #7FA29B; --accent-ink: #8DB0A9; --accent-soft: #1D2D33; --put: #C9939D; --put-soft: #2E2230; --put-ink: #C9939D;
   --bar: #0B1220; --bar-line: #24324A;
   --tile: #EEF1F3; --tile-line: #2A3650; --tile-dark: #2A3650;
   --pop: #EEF1F3; --pop-ink: #172236; --pop-muted: #56657A; --pop-pos: #43615B; --pop-neg: #7E4652;
@@ -62,7 +63,7 @@ button { font: inherit; color: inherit; }
   padding-top: 20px; padding-bottom: 20px;
 }
 .masthead { display: flex; align-items: baseline; gap: 6px 18px; flex-wrap: wrap; }
-.wordmark { margin: 0; font-size: 19px; font-weight: 650; letter-spacing: -0.005em; }
+.wordmark { margin: 0; font-size: 19px; line-height: 1.5; font-weight: 650; letter-spacing: -0.005em; }
 .wordmark span { color: var(--bar-muted); }
 .subtitle { margin: 0; color: var(--bar-muted); font-size: 14.5px; }
 
@@ -86,6 +87,14 @@ button { font: inherit; color: inherit; }
 }
 .search::placeholder { color: var(--bar-muted); }
 .search:focus { outline: none; border-color: var(--bar-ink); box-shadow: 0 0 0 1px var(--bar-ink); }
+
+/* Stale-data / estimated-dates notice */
+.notice {
+  margin: 20px 0 0; padding: 10px 14px; border: 1px solid var(--put); border-radius: 3px;
+  background: var(--put-soft); color: var(--put-ink); font-size: 13.5px;
+}
+.pop:focus { outline: none; }
+.pop:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* Key figures row */
 .stats {
@@ -111,7 +120,9 @@ button { font: inherit; color: inherit; }
 .day__num { font-size: 32px; font-weight: 600; line-height: 1.05; letter-spacing: -0.02em; color: var(--head); font-variation-settings: 'wdth' 92; }
 .day__count { font-size: 12.5px; color: var(--muted); }
 .day--today .day__dow { color: var(--accent-ink); }
-.day--past { opacity: .6; }
+/* Past days: dim the logos and the date, keep every label at full contrast. */
+.day--past .day__num { color: var(--muted); }
+.day--past .tile__logo { opacity: .55; }
 
 .session { margin-top: 14px; }
 .session__head {
@@ -177,7 +188,8 @@ body.color .tile__logo img, .tile:hover .tile__logo img, .tile:focus-visible .ti
 body.shot { width: 1320px; }
 body.shot .controls, body.shot .foot { display: none; }
 body.shot .page { padding-bottom: 20px; }
-body.shot .day--past { opacity: 1; }
+body.shot .day--past .tile__logo { opacity: 1; }
+body.shot .day--past .day__num { color: var(--head); }
 
 /* Logo audit page */
 .audit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 20px 16px; margin-top: 24px; }

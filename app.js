@@ -31,7 +31,13 @@
   const iso = (d) => d.toISOString().slice(0, 10);
   const parseIso = (s) => new Date(`${s}T00:00:00Z`);
   const addDays = (d, n) => new Date(d.getTime() + n * 86400000);
-  const todayIso = (() => { const n = new Date(); return iso(new Date(Date.UTC(n.getFullYear(), n.getMonth(), n.getDate()))); })();
+  // Report dates are New York dates, so "today" is too (after midnight in Warsaw, US companies are still reporting).
+  const todayIso = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date());
+  const parseWeek = (s) => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(s ?? '')) return null;
+    const d = parseIso(s);
+    return Number.isNaN(d.getTime()) || iso(d) !== s ? null : mondayOf(d);
+  };
   const mondayOf = (d) => addDays(d, -((d.getUTCDay() + 6) % 7));
   const focusMonday = () => {
     const t = parseIso(todayIso), dow = t.getUTCDay();
@@ -47,7 +53,7 @@
   };
 
   const state = {
-    monday: params.get('week') ? mondayOf(parseIso(params.get('week'))) : focusMonday(),
+    monday: parseWeek(params.get('week')) ?? focusMonday(),
     query: '',
     watchOnly: false,
     color: false,
@@ -133,9 +139,20 @@
       ['From watchlist', weekDates.size ? `<span class="stat__value--accent">${weekDates.size}</span> <small>${[...weekDates].slice(0, 6).map(esc).join(' · ')}</small>` : '0'],
     ].map(([l, v]) => `<div class="stat"><div class="stat__label">${l}</div><div class="stat__value">${v}</div></div>`).join('');
 
+    renderNotice();
     $('updated').textContent = DATA.updated
       ? `Updated ${new Date(DATA.updated).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}`
       : 'No data yet — run npm run fetch';
+  }
+
+  // Warn when the data is stale, and when the week is far enough ahead that Nasdaq's dates are still estimates.
+  function renderNotice() {
+    const notes = [];
+    const age = DATA.updated ? Math.floor((Date.now() - new Date(DATA.updated)) / 86400000) : null;
+    if (age != null && age >= 2) notes.push(`Data is ${age} days old, so some report dates may have moved since.`);
+    if (!SHOT && state.monday - focusMonday() >= 14 * 86400000) notes.push('Dates this far ahead are Nasdaq estimates and often change.');
+    $('notice').hidden = !notes.length;
+    $('notice').textContent = notes.join(' ');
   }
 
   document.addEventListener('error', (e) => {
@@ -204,7 +221,7 @@
   function showPop(btn) {
     const r = byKey.get(btn.dataset.s);
     const diff = r.eps != null && r.ly != null && r.ly !== 0 ? (r.eps - r.ly) / Math.abs(r.ly) : null;
-    pop.innerHTML = `<h3>${esc(r.s)}</h3><p class="pop__name">${esc(r.n)}</p><dl>
+    pop.innerHTML = `<h3 id="popTitle">${esc(r.s)}</h3><p class="pop__name">${esc(r.n)}</p><dl>
       <dt>Market cap</dt><dd>${fmtCap(r.mc)}</dd>
       <dt>EPS consensus</dt><dd>${fmtEps(r.eps)}</dd>
       <dt>EPS a year ago</dt><dd>${fmtEps(r.ly)}</dd>
@@ -217,6 +234,15 @@
     const top = b.bottom + h + 12 < innerHeight ? b.bottom + 8 : Math.max(8, b.top - h - 8);
     pop.style.left = `${left}px`;
     pop.style.top = `${top}px`;
+    popOpener = btn;
+    pop.focus({ preventScroll: true });
+  }
+  let popOpener = null;
+  function closePop(restoreFocus) {
+    if (pop.hidden) return;
+    pop.hidden = true;
+    if (restoreFocus && popOpener?.isConnected) popOpener.focus({ preventScroll: true });
+    popOpener = null;
   }
 
   document.addEventListener('click', (e) => {
@@ -228,15 +254,15 @@
       render();
     }
     if (t) { showPop(t); return; }
-    if (!e.target.closest('.pop')) pop.hidden = true;
+    if (!e.target.closest('.pop')) closePop(false);
   });
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') pop.hidden = true;
+    if (e.key === 'Escape') closePop(true);
     if (e.target.matches('input')) return;
     if (e.key === 'ArrowLeft') go(-7);
     if (e.key === 'ArrowRight') go(7);
   });
-  addEventListener('scroll', () => { pop.hidden = true; }, { passive: true });
+  addEventListener('scroll', () => closePop(false), { passive: true });
 
   function go(days) {
     state.monday = days ? addDays(state.monday, days) : focusMonday();
