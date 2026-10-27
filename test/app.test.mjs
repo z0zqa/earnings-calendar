@@ -46,10 +46,18 @@ test('invalid week parameters fall back to the current week', async () => {
   }
 });
 
-test('missing logos fall back to a monogram', async () => {
+test('logos are navy marks from logos/, originals load on hover only, monograms where there is none', async () => {
   const { page } = await open(`?week=${WEEK}`);
-  await page.waitForFunction(() => !document.querySelector('.tile img'));
-  assert.ok(await page.locator('.tile__mono').count() > 20);
+  const marks = page.locator('.tile__mark');
+  assert.ok(await marks.count() > 20);
+  for (const src of await marks.evaluateAll((m) => m.map((x) => x.getAttribute('src')))) assert.match(src, /^logos\/[A-Z0-9._-]+\.png$/);
+  await page.waitForFunction(() => [...document.querySelectorAll('.tile__mark')].every((i) => i.complete && i.naturalWidth > 0));
+  assert.equal(await page.locator('.tile__orig[src]').count(), 0);
+  await marks.first().hover();
+  assert.equal(await page.locator('.tile__orig[src]').count(), 1);
+  const noLogo = await page.evaluate(() => [...document.querySelectorAll('.tile')]
+    .filter((t) => (window.LOGOS[t.dataset.s]?.src ?? 'none') === 'none').length);
+  assert.equal(await page.locator('.tile__mono').count(), noLogo);
 });
 
 test('company details open with Enter and close with Escape, returning focus', async () => {

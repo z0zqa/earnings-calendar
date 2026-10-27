@@ -26,3 +26,10 @@ New companies appear every week; the Sunday workflow saves `out/logo-audit-<week
 77 companies new to the default view since the first audit. Fixed: **CORT** (FMP had a promo image) and **WGS**
 (old Sema4 logo) pinned to Parqet; **SYRE** (old Aeglea logo in both sources) set to a monogram. Still to
 confirm: **ABEV** (red "a") and **ETR** (pink "e").
+
+## Navy marks, October 27, 2026
+
+Every logo is now redrawn in the app's navy by `scripts/logos.mjs`. Reviewing the 540 audited logos as marks,
+the badge-style logos that lose their shape as one colour fall back to a monogram (HOMB, FLXS, DOC, MO, NE,
+RYAAY, CTBI) and six switch to Parqet, whose version draws cleanly (FCX, FRHC, SHEL, NSC, XYZ, VRT).
+37 overrides in total.

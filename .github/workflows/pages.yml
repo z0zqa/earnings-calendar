@@ -32,7 +32,7 @@ jobs:
         with:
           ref: main
       - name: Prepare site
-        run: mkdir -p _site/data && cp index.html app.js styles.css config.js _site/ && cp data/earnings.js _site/data/
+        run: mkdir -p _site/data && cp index.html app.js styles.css config.js _site/ && cp data/earnings.js _site/data/ && cp -r logos _site/
       - uses: actions/upload-pages-artifact@v3
       - id: deployment
         uses: actions/deploy-pages@v4

@@ -18,7 +18,6 @@
   --bar: #172236; --bar-ink: #EEF1F3; --bar-muted: #B7BEC7; --bar-line: #2A3750; --bar-control: #7D8CA0;
   --tile: #FFFFFF;        /* tiles stay light in both themes so logos stay legible */
   --tile-line: #D5DBE1;
-  --tile-dark: #172236;   /* for white logos on a transparent background */
   --pop: #252A31; --pop-ink: #F7F9FA; --pop-muted: #B7BEC7; --pop-pos: #8DB0A9; --pop-neg: #C9939D;
   --shadow: rgba(23, 34, 54, .16);
   --mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 10'%3E%3Cpolyline points='0,9.2 11,9.2 23,1' fill='none' stroke='%23000' stroke-width='1.6' stroke-linejoin='round'/%3E%3C/svg%3E");
@@ -30,7 +29,7 @@
     --ink: #EEF1F3; --head: #EEF1F3; --muted: #A7B1BD; --line: #2A3650; --control: #7D8CA0; --rule: #B7BEC7;
     --accent: #7FA29B; --accent-ink: #8DB0A9; --accent-soft: #1D2D33; --put: #C9939D; --put-soft: #2E2230; --put-ink: #C9939D;
     --bar: #0B1220; --bar-line: #24324A;
-    --tile: #EEF1F3; --tile-line: #2A3650; --tile-dark: #2A3650;
+    --tile: #EEF1F3; --tile-line: #2A3650;
     --pop: #EEF1F3; --pop-ink: #172236; --pop-muted: #56657A; --pop-pos: #43615B; --pop-neg: #7E4652;
     --shadow: rgba(0, 0, 0, .6);
   }
@@ -40,7 +39,7 @@
   --ink: #EEF1F3; --head: #EEF1F3; --muted: #A7B1BD; --line: #2A3650; --control: #7D8CA0; --rule: #B7BEC7;
   --accent: #7FA29B; --accent-ink: #8DB0A9; --accent-soft: #1D2D33; --put: #C9939D; --put-soft: #2E2230; --put-ink: #C9939D;
   --bar: #0B1220; --bar-line: #24324A;
-  --tile: #EEF1F3; --tile-line: #2A3650; --tile-dark: #2A3650;
+  --tile: #EEF1F3; --tile-line: #2A3650;
   --pop: #EEF1F3; --pop-ink: #172236; --pop-muted: #56657A; --pop-pos: #43615B; --pop-neg: #7E4652;
   --shadow: rgba(0, 0, 0, .6);
 }
@@ -122,7 +121,7 @@ button { font: inherit; color: inherit; }
 .day--today .day__dow { color: var(--accent-ink); }
 /* Past days: dim the logos and the date, keep every label at full contrast. */
 .day--past .day__num { color: var(--muted); }
-.day--past .tile__logo { opacity: .55; }
+.day--past .tile__logo > * { opacity: .55; }
 
 .session { margin-top: 14px; }
 .session__head {
@@ -138,20 +137,22 @@ button { font: inherit; color: inherit; }
 .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 8px; }
 .tile { display: block; width: 100%; padding: 0; border: 0; background: none; cursor: pointer; text-align: center; color: var(--ink); }
 .tile__logo {
-  display: grid; place-items: center; aspect-ratio: 1;
+  position: relative; display: grid; place-items: center; aspect-ratio: 1;
   background: var(--tile); border: 1px solid var(--tile-line); border-radius: 3px; overflow: hidden;
   transition: border-color .15s;
 }
-.tile__logo img {
-  width: 70%; height: 70%; object-fit: contain; mix-blend-mode: multiply;
-  filter: grayscale(1) brightness(.8) contrast(1.6); transition: filter .2s;
+/* Every logo in the app's navy; the brand's original fades in on hover or focus, or stays in colour mode. */
+.tile__mark, .tile__orig {
+  position: absolute; inset: 15%; width: 70%; height: 70%; object-fit: contain; transition: opacity .2s;
 }
-body.color .tile__logo img, .tile:hover .tile__logo img, .tile:focus-visible .tile__logo img { filter: none; }
+.tile__orig { opacity: 0; }
+.tile__orig:not([src]) { visibility: hidden; }
+body.color .tile__orig, .tile:hover .tile__orig, .tile:focus-visible .tile__orig { opacity: 1; }
+body.color .tile__mark:has(+ .tile__orig[src]),
+.tile:hover .tile__mark:has(+ .tile__orig[src]), .tile:focus-visible .tile__mark:has(+ .tile__orig[src]) { opacity: 0; }
 .tile:hover .tile__logo, .tile:focus-visible .tile__logo { border-color: var(--control); }
 .tile:focus-visible { outline: none; }
 .tile:focus-visible .tile__logo { box-shadow: 0 0 0 2px var(--accent); }
-.tile__logo--light { background: var(--tile-dark); border-color: var(--tile-dark); }
-.tile__logo--light img { mix-blend-mode: normal; }
 .tile__mono { font-size: 15px; font-weight: 650; color: #56657A; font-variation-settings: 'wdth' 80; }
 .tile__ticker { display: block; margin-top: 5px; font-size: 12px; font-weight: 600; font-variation-settings: 'wdth' 92; }
 .tile--watch .tile__logo { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
@@ -188,12 +189,14 @@ body.color .tile__logo img, .tile:hover .tile__logo img, .tile:focus-visible .ti
 body.shot { width: 1320px; }
 body.shot .controls, body.shot .foot { display: none; }
 body.shot .page { padding-bottom: 20px; }
-body.shot .day--past .tile__logo { opacity: 1; }
+body.shot .day--past .tile__logo > * { opacity: 1; }
 body.shot .day--past .day__num { color: var(--head); }
 
 /* Logo audit page */
 .audit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 20px 16px; margin-top: 24px; }
+.audit-card__pair { display: flex; gap: 8px; align-items: flex-start; }
 .audit-card .tile { width: 96px; }
+.audit-card__orig { width: 72px; height: 72px; padding: 6px; object-fit: contain; margin-top: 12px; background: var(--line); border-radius: 3px; }
 .audit-card__name { margin-top: 2px; font-size: 12.5px; line-height: 1.35; color: var(--muted); }
 .audit-card__flags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
 .chip {
