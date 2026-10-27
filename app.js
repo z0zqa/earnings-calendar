@@ -151,6 +151,8 @@
     if (!SHOT && state.monday - focusMonday() >= 14 * 86400000) notes.push('Dates this far ahead are Nasdaq estimates and often change.');
     $('notice').hidden = !notes.length;
     $('notice').textContent = notes.join(' ');
+    // Stale data is a warning (claret); the estimates note alone is information (neutral).
+    $('notice').classList.toggle('notice--warn', age != null && age >= 2);
   }
 
   // The original logo loads on first hover or focus (or up front in colour mode); if it fails, the mark stays.
