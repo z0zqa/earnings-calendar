@@ -104,7 +104,7 @@ button { font: inherit; color: inherit; }
 .stat { border-top: 1px solid var(--line); padding-top: 10px; }
 .stat__label { color: var(--muted); font-size: 12.5px; font-weight: 650; font-variation-settings: 'wdth' 87.5; }
 .stat__value { font-size: 28px; font-weight: 600; letter-spacing: -0.015em; line-height: 1.15; font-variation-settings: 'wdth' 92; color: var(--head); }
-.stat__value small { font-size: 13px; color: var(--muted); font-weight: 400; letter-spacing: 0; }
+.stat__value small { white-space: nowrap; font-size: 13px; color: var(--muted); font-weight: 400; letter-spacing: 0; }
 .stat__value--accent { color: var(--accent-ink); }
 
 /* The week: five exhibits side by side */

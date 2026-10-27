@@ -1,92 +1,121 @@
 # Earnings Calendar
 
-A weekly calendar of US earnings reports shown as company logos, modelled on the
-[Yahoo Finance Earnings Calendar](https://finance.yahoo.com/calendar/earnings/) but set in the same design system
-as [Option Toolkit](https://github.com/z0zqa/opcje): a midnight-navy band, a light working ground, rules instead of
-cards, eucalyptus as the only accent, Archivo with tabular figures, and a dark theme that follows the system.
-Every Sunday an email arrives with a summary of the coming week and a screenshot of the app.
+**A weekly calendar of US earnings reports shown as company logos, with a Sunday email that sums up the week ahead.**
+Inspired by the [Yahoo Finance earnings calendar](https://finance.yahoo.com/calendar/earnings/), rebuilt in my own
+design system and automated end to end: the data refreshes itself every weekday, and every Sunday a summary with a
+screenshot of the coming week lands in my inbox.
 
-![The week in the app](docs/preview.png)
+![A tour of the app: the week of Oct 26–30, 2026, company details, colour and watchlist views, search, an expanded session, weeks ahead with the estimates notice, and the dark theme](docs/tour.gif)
 
-## What the app shows
+## What it does
 
-- Five columns (Mon–Fri), each split into **Before open**, **After close** and **Time not supplied**.
-- The 9 largest companies by market cap per session by default; the rest sit behind "+ N more".
-- Logos in monochrome, in colour on hover or with the **Color** toggle.
-- Click a company for market cap, EPS consensus, EPS a year ago, change y/y, fiscal quarter and number of estimates.
-- Watchlist companies get a eucalyptus outline; a **Watchlist** filter, search, and ← → keys to change week.
-- A notice when the data is more than a day old, and on weeks far enough ahead that Nasdaq's dates are still estimates.
-- "Today" follows New York time, the time zone the report dates are in.
-- Opens straight from disk (`index.html`) and works on a phone, with the keyboard and with a screen reader.
+- **The week at a glance.** Five columns, Monday to Friday, each split into reports *before the open*, *after the
+  close* and *time not supplied*. The nine largest companies by market cap lead each session; the rest open
+  with "+ N more". A busy week runs to 800+ reports, so the ranking is what keeps the page readable.
+- **The numbers behind each logo.** Click a company for market cap, EPS consensus, EPS a year ago, the change
+  year on year, the fiscal quarter and the number of analyst estimates.
+- **A watchlist.** My companies are outlined in the accent colour, counted in the summary row, and one click
+  filters the week down to them. Search works by ticker or company name.
+- **The Sunday email.** Reports for the week, the busiest day, my watchlist companies with their dates and
+  sessions, the ten largest companies, a day-by-day overview and a screenshot of the calendar.
+- **Honest about its data.** A notice appears when the data is more than a day old, and on weeks far enough ahead
+  that Nasdaq's dates are still estimates. "Today" follows New York time, the time zone the report dates are in.
 
-Data: Nasdaq's public earnings-calendar API (no key). Logos: Financial Modeling Prep, then Parqet, then a
-monogram of the ticker when neither has one.
+| The Sunday email | On a phone |
+| --- | --- |
+| ![The Sunday email: summary figures, watchlist companies, the largest companies and a day-by-day overview](docs/email.png) | <img src="docs/phone.png" alt="The calendar on a phone" width="300"> |
 
-## Logo audit
+## What this project shows
 
-Logos are matched by ticker, so a provider can return the wrong image (an old logo after a rebrand, a promo
-banner, another company's mark). Open `index.html?audit` (or `?audit=all` for every company, plus
-`&week=YYYY-MM-DD`) to see every logo of the week next to its company name, with chips showing where it came
-from and what the app did to it:
+- **Automation from source to inbox.** Three GitHub Actions workflows run the product with no server to keep:
+  a weekday data refresh that commits the new data, a Sunday job that screenshots the app in a headless browser
+  and emails the summary over SMTP, and CI that tests every change. Pages publishing is one switch away.
+- **Working with imperfect data.** The data comes from Nasdaq's public calendar API, which has no key and no
+  contract. The fetch retries with backoff, keeps a day's previous data when Nasdaq answers with an empty day,
+  and stores one company per line so each day's data commit stays small and readable.
+- **Data quality as a habit.** Logos are matched by ticker, so a provider can return another company's mark, a
+  rebrand's old logo or a promo banner. I audited all 540 logos the app shows by default, company by company,
+  and pinned 24 of them to a better source (`docs/logo-audit.md`). The app finds the rest of the visual problems
+  on its own: white logos get a dark tile, logos lost in padding are cropped. An `?audit` view lists every logo
+  of a week with its source, so new companies can be checked in one scan.
+- **Design.** The same design system as my [Option Toolkit](https://github.com/z0zqa/opcje): a midnight-navy band,
+  rules instead of cards, eucalyptus as the only accent, one typeface (Archivo) with tabular figures, and a dark
+  theme that follows the system setting. Logos sit in monochrome so 40 brands on a screen read as one page;
+  colour comes back on hover or with one toggle.
+- **Accessibility.** Every label meets WCAG AA contrast in both themes (axe-core reports no violations), the app
+  works from the keyboard, company details take and return focus, and the layout holds on a phone.
+- **Verification.** 12 automated tests: unit tests for the data parsing, date logic and storage format, and
+  browser tests that load the app in Chromium and check rendering, bad links, search, the watchlist filter,
+  keyboard use, the New York "today" and the data notices. The tests for each bug I fixed were checked to fail
+  on the code before the fix. The email was sent end to end through a test SMTP server before going live.
+- **Reviewing my own work.** After the first release I audited the app as a whole: data freshness, bugs,
+  security, accessibility, dependencies and the workflows. Every finding was fixed and the bugs among them are
+  now covered by tests; the biggest was stale data that showed 18 large companies on the wrong day.
 
-- **FMP / Parqet / Monogram / Pinned URL**: the source actually shown.
-- **dark tile**: a white logo on a transparent background, placed on navy so it stays visible.
-- **cropped**: a logo lost in padding, cropped to its mark.
-- **pinned**: overridden in `config.json`.
+## How it works
 
-When a logo is wrong, pin a source in `config.json` → `logoOverrides`: `"parqet"`, `"none"` (monogram) or an
-image URL, then run `npm run fetch`. The Sunday workflow saves the audit sheet for the coming week as
-`out/logo-audit-*.png` in its `digest` artifact.
+```
+Nasdaq calendar API ──► scripts/fetch.mjs ──► data/earnings.js ──► index.html + app.js (the calendar)
+   (weekdays, 05:23 UTC)                                                  │
+                                                                          ▼
+                       scripts/digest.mjs (Sundays, 16:07 UTC): headless Chromium screenshot ──► email over SMTP
+```
 
-## Run locally
+- **No build step, no framework.** `index.html`, `app.js` and `styles.css` are the whole app, under 1,200 lines
+  with the scripts and tests. The data ships as a script file, so the page opens straight from disk.
+- **Logos** load in the browser from Financial Modeling Prep, then Parqet, then fall back to a monogram of the
+  ticker; overrides live in `config.json`.
+- **Data window:** one week back and three weeks ahead, refreshed daily; eight weeks of history are kept.
+
+| Logo audit view (`index.html?audit`) |
+| --- |
+| ![The logo audit view: each logo with its company name, source and the fixes the app applied](docs/logo-audit.png) |
+
+## Run it
 
 ```bash
 npm install
 npm run fetch        # one week back + three weeks ahead into data/
 open index.html      # or: npm start → http://localhost:4321
-npm run digest:dry   # builds the email and screenshot into out/ without sending
-npm test             # unit tests for the data scripts + the app in headless Chromium
+npm test             # unit tests + the app in headless Chromium
+npm run digest:dry   # builds the email and the screenshot into out/ without sending
+npm run record:tour  # re-records docs/tour.gif
 ```
 
-Data lives in `data/earnings.js`, one company per line, so the daily data commits stay small. CI runs the tests
-on every push and pull request.
+### The Sunday email
 
-## Configuration (`config.json`)
-
-| Field | Meaning |
-| --- | --- |
-| `perSession` | logos per session before "+ N more" |
-| `watchlist` | tickers highlighted in the app and the email |
-| `weeksBack`, `weeksAhead` | how far to fetch |
-| `keepWeeks` | how many weeks of history to keep in `data/` |
-
-Run `npm run fetch` after a change (it also regenerates `config.js` for the browser).
-
-## Sunday email
-
-The **Sunday email** workflow (`.github/workflows/weekly-digest.yml`) runs on Sundays at 16:07 UTC: it fetches
-fresh data, screenshots the coming week with Playwright and sends the email over SMTP. The email has the number
-of reports, the companies on your watchlist, the 10 largest companies, a day-by-day overview and the calendar
-screenshot (inline and attached).
-
-Set these under **Settings → Secrets and variables → Actions**:
+The **Sunday email** workflow runs on Sundays at 16:07 UTC. It needs two repository secrets (Settings → Secrets
+and variables → Actions):
 
 | Secret | Value |
 | --- | --- |
 | `SMTP_USER` | the Gmail address that sends the email |
-| `SMTP_PASS` | a [Google app password](https://myaccount.google.com/apppasswords) (needs 2-step verification), not your normal password |
-| `MAIL_TO` | recipient (optional; defaults to `SMTP_USER`) |
+| `SMTP_PASS` | a [Google app password](https://myaccount.google.com/apppasswords) (needs 2-step verification) |
+| `MAIL_TO` | the recipient (optional; defaults to `SMTP_USER`) |
 
-Optional variables: `APP_URL` for the "Open the app" link in the email; `SMTP_HOST` / `SMTP_PORT` for a server
-other than Gmail.
+Optional variables: `APP_URL` adds an "Open the app" link; `SMTP_HOST` / `SMTP_PORT` for a server other than
+Gmail. To try it: **Actions → Sunday email → Run workflow**; "Build the email only" leaves the email and
+screenshot in the run's `digest` artifact, along with the logo audit sheet for that week.
 
-To test: **Actions → Sunday email → Run workflow** ("Build the email only" leaves the result in the `digest`
-artifact).
+### Configuration (`config.json`)
 
-Scheduled GitHub Actions only run on the default branch (`main`).
+| Field | Meaning |
+| --- | --- |
+| `watchlist` | tickers highlighted in the app and listed in the email |
+| `perSession` | logos per session before "+ N more" |
+| `weeksBack`, `weeksAhead`, `keepWeeks` | how much data to fetch and keep |
+| `logoOverrides` | `"parqet"`, `"none"` (monogram) or an image URL for a ticker whose logo is wrong |
 
-## Publishing (optional)
+Run `npm run fetch` after a change; it also regenerates `config.js` for the browser.
 
-`pages.yml` deploys the app to GitHub Pages after each data refresh. Turn on Pages (Source: GitHub Actions) and
-set the variable `PAGES_ENABLED=true`. Pages on a private repository needs GitHub Pro; without it the app runs
-locally and the email still arrives.
+### Publishing (optional)
+
+`pages.yml` deploys the app to GitHub Pages after each successful data refresh. Turn on Pages (Source: GitHub
+Actions) and set the repository variable `PAGES_ENABLED=true`. On a private repository Pages needs GitHub Pro.
+
+## Limits
+
+- Dates more than a week or two out are Nasdaq's estimates and often move; the app says so on those weeks.
+- The Nasdaq API and both logo sources are public endpoints without a service agreement. If one changes, the
+  refresh fails visibly (GitHub emails the failed run) or logos fall back to monograms; nothing breaks silently.
+- Logos are company trademarks, shown here for personal use.
