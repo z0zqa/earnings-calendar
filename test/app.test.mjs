@@ -3,6 +3,7 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { pathToFileURL } from 'node:url';
 import { join } from 'node:path';
+import { readFileSync } from 'node:fs';
 import { chromium } from 'playwright';
 import { ROOT, loadData, mondayOf, parseIso, iso } from '../scripts/lib.mjs';
 
@@ -48,12 +49,16 @@ test('invalid week parameters fall back to the current week', async () => {
 
 test('logos are navy marks from logos/, originals load on hover only, monograms where there is none', async () => {
   const { page } = await open(`?week=${WEEK}`);
+  // Serve originals from disk (other tests abort them), so a hovered original loads instead of erroring away.
+  const png = readFileSync(join(ROOT, 'logos', 'AAPL.png'));
+  await page.route(/financialmodelingprep|parqet/, (r) => r.fulfill({ body: png, contentType: 'image/png' }));
   const marks = page.locator('.tile__mark');
   assert.ok(await marks.count() > 20);
   for (const src of await marks.evaluateAll((m) => m.map((x) => x.getAttribute('src')))) assert.match(src, /^logos\/[A-Z0-9._-]+\.png$/);
   await page.waitForFunction(() => [...document.querySelectorAll('.tile__mark')].every((i) => i.complete && i.naturalWidth > 0));
   assert.equal(await page.locator('.tile__orig[src]').count(), 0);
   await marks.first().hover();
+  await page.waitForFunction(() => document.querySelector('.tile__orig[src]')?.complete);
   assert.equal(await page.locator('.tile__orig[src]').count(), 1);
   const noLogo = await page.evaluate(() => [...document.querySelectorAll('.tile')]
     .filter((t) => (window.LOGOS[t.dataset.s]?.src ?? 'none') === 'none').length);
