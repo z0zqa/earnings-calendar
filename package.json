@@ -10,7 +10,8 @@
     "digest:dry": "node scripts/digest.mjs --dry-run",
     "test": "node --test test/*.test.mjs",
     "test:unit": "node --test test/lib.test.mjs",
-    "record:tour": "node scripts/record-tour.mjs"
+    "record:tour": "node scripts/record-tour.mjs",
+    "logos": "node scripts/logos.mjs"
   },
   "dependencies": {
     "nodemailer": "^10.2.1",

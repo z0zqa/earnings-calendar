@@ -20,8 +20,8 @@ await page.addInitScript(() => { try { localStorage.clear(); } catch {} });
 
 const frames = [];
 const pause = (ms) => page.waitForTimeout(ms);
-const logos = () => page.waitForFunction(() => [...document.querySelectorAll('.tile img')]
-  .filter((i) => i.getBoundingClientRect().top < innerHeight).every((i) => i.complete && i.naturalWidth > 0), null, { timeout: 30000 })
+const logos = () => page.waitForFunction(() => [...document.querySelectorAll('.tile img[src]')]
+  .filter((i) => i.getBoundingClientRect().top < innerHeight).every((i) => i.complete), null, { timeout: 30000 })
   .catch(() => {}).then(() => pause(400));
 const shot = async (ms) => { frames.push({ png: await page.screenshot(), ms }); process.stdout.write('.'); };
 

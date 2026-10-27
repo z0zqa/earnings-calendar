@@ -37,6 +37,8 @@ jobs:
         env:
           WEEK: ${{ inputs.week }}
         run: node scripts/fetch.mjs ${WEEK:+"$WEEK"}
+      - name: Draw logos for new companies
+        run: node scripts/logos.mjs
       - name: Screenshot and email
         env:
           SMTP_USER: ${{ secrets.SMTP_USER }}
@@ -59,6 +61,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data config.js
+          git add data config.js logos
           git diff --cached --quiet || git commit -m "Data: $(date -u +%F)"
           git push

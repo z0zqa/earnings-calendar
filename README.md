@@ -1,9 +1,12 @@
 # Earnings Calendar
 
-**A weekly calendar of US earnings reports shown as company logos, with a Sunday email that sums up the week ahead.**
-Inspired by the [Yahoo Finance earnings calendar](https://finance.yahoo.com/calendar/earnings/), rebuilt in my own
-design system and automated end to end: the data refreshes itself every weekday, and every Sunday a summary with a
-screenshot of the coming week lands in my inbox.
+**Which companies report earnings this week, and when, at a glance: one page of logos per week, and a summary
+in my inbox every Sunday.**
+
+I follow earnings around my watchlist, and earnings calendars are long tables: 800+ rows in a busy week, with the
+companies I care about somewhere in the middle. This shows the week the way I read it,
+largest companies first, split by day and by session, with my watchlist marked. The data refreshes itself every
+weekday, and every Sunday the coming week arrives by email with a screenshot of the calendar.
 
 ![A tour of the app: the week of Oct 26–30, 2026, company details, colour and watchlist views, search, an expanded session, weeks ahead with the estimates notice, and the dark theme](docs/tour.gif)
 
@@ -35,16 +38,20 @@ screenshot of the coming week lands in my inbox.
   and stores one company per line so each day's data commit stays small and readable.
 - **Data quality as a habit.** Logos are matched by ticker, so a provider can return another company's mark, a
   rebrand's old logo or a promo banner. I audited all 540 logos the app shows by default, company by company,
-  and pinned 24 of them to a better source (`docs/logo-audit.md`). The app finds the rest of the visual problems
-  on its own: white logos get a dark tile, logos lost in padding are cropped. An `?audit` view lists every logo
-  of a week with its source, so new companies can be checked in one scan.
+  and pinned 37 of them to a better source or a monogram (`docs/logo-audit.md`). An `?audit` view shows each
+  logo of a week next to the brand's original, so new companies can be checked in one scan.
+- **One visual language for 4,300 brands.** `scripts/logos.mjs` redraws every company's logo as a single navy
+  mark, so a week of 40 logos reads as one page in the app's colours. It works out what is mark and what is
+  background: white lettering on transparency is kept, a coloured square behind white letters is dropped,
+  symbols cut into a badge stay cut out, and every mark is cropped to the same margin. The marks are built
+  once and committed (11 MB for 4,250 companies); the daily refresh draws only new tickers. The brand's
+  original colours come back on hover or with one toggle.
 - **Design.** The same design system as my [Option Toolkit](https://github.com/z0zqa/opcje): a midnight-navy band,
   rules instead of cards, eucalyptus as the only accent, one typeface (Archivo) with tabular figures, and a dark
-  theme that follows the system setting. Logos sit in monochrome so 40 brands on a screen read as one page;
-  colour comes back on hover or with one toggle.
+  theme that follows the system setting.
 - **Accessibility.** Every label meets WCAG AA contrast in both themes (axe-core reports no violations), the app
   works from the keyboard, company details take and return focus, and the layout holds on a phone.
-- **Verification.** 12 automated tests: unit tests for the data parsing, date logic and storage format, and
+- **Verification.** 13 automated tests: unit tests for the data parsing, date logic, storage format and logo drawing, and
   browser tests that load the app in Chromium and check rendering, bad links, search, the watchlist filter,
   keyboard use, the New York "today" and the data notices. The tests for each bug I fixed were checked to fail
   on the code before the fix. The email was sent end to end through a test SMTP server before going live.
@@ -63,19 +70,21 @@ Nasdaq calendar API ──► scripts/fetch.mjs ──► data/earnings.js ─�
 
 - **No build step, no framework.** `index.html`, `app.js` and `styles.css` are the whole app, under 1,200 lines
   with the scripts and tests. The data ships as a script file, so the page opens straight from disk.
-- **Logos** load in the browser from Financial Modeling Prep, then Parqet, then fall back to a monogram of the
-  ticker; overrides live in `config.json`.
+- **Logos** are drawn ahead of time by `scripts/logos.mjs` from Financial Modeling Prep, then Parqet, into
+  `logos/` (one navy PNG per ticker, plus an index of where each came from); a ticker with no usable logo gets a
+  monogram. Overrides live in `config.json`.
 - **Data window:** one week back and three weeks ahead, refreshed daily; eight weeks of history are kept.
 
 | Logo audit view (`index.html?audit`) |
 | --- |
-| ![The logo audit view: each logo with its company name, source and the fixes the app applied](docs/logo-audit.png) |
+| ![The logo audit view: each navy mark next to the brand's original, with its company name and source](docs/logo-audit.png) |
 
 ## Run it
 
 ```bash
 npm install
 npm run fetch        # one week back + three weeks ahead into data/
+npm run logos        # draws navy marks for new tickers into logos/ (--force redraws all)
 open index.html      # or: npm start → http://localhost:4321
 npm test             # unit tests + the app in headless Chromium
 npm run digest:dry   # builds the email and the screenshot into out/ without sending
@@ -106,7 +115,8 @@ screenshot in the run's `digest` artifact, along with the logo audit sheet for t
 | `weeksBack`, `weeksAhead`, `keepWeeks` | how much data to fetch and keep |
 | `logoOverrides` | `"parqet"`, `"none"` (monogram) or an image URL for a ticker whose logo is wrong |
 
-Run `npm run fetch` after a change; it also regenerates `config.js` for the browser.
+Run `npm run fetch` after a change (it regenerates `config.js` for the browser), and `npm run logos` after
+changing `logoOverrides`.
 
 ### Publishing (optional)
 

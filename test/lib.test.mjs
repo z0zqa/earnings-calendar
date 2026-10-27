@@ -46,3 +46,16 @@ test('serialize round-trips through the browser script format', () => {
   assert.deepEqual(window.EARNINGS, data);
   assert.ok(text.split('\n').length > 3, 'one company per line');
 });
+
+test('logo ink: free-standing white on transparency is the mark, an opaque plate is background', async () => {
+  const { inkOf } = await import('../scripts/logos.mjs');
+  const img = (w, h, px) => { const data = new Uint8Array(w * h * 4); for (let i = 0; i < w * h; i++) data.set(px(i % w, (i / w) | 0), i * 4); return { width: w, height: h, data }; };
+  // White bar on transparency (like IBM's lettering): ink.
+  const white = inkOf(img(20, 20, (x, y) => (y >= 8 && y < 12 ? [255, 255, 255, 255] : [0, 0, 0, 0])));
+  assert.equal(white[10 * 20 + 10], 1);
+  assert.equal(white[0], 0);
+  // White bar on an opaque blue square (like Visa's): the bar is ink, the square is not.
+  const visa = inkOf(img(20, 20, (x, y) => (y >= 8 && y < 12 ? [255, 255, 255, 255] : [20, 60, 200, 255])));
+  assert.equal(visa[10 * 20 + 10], 1);
+  assert.equal(visa[2 * 20 + 2], 0);
+});
