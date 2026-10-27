@@ -1,9 +1,12 @@
 # Earnings Calendar
 
-**A weekly calendar of US earnings reports shown as company logos, with a Sunday email that sums up the week ahead.**
-Inspired by the [Yahoo Finance earnings calendar](https://finance.yahoo.com/calendar/earnings/), rebuilt in my own
-design system and automated end to end: the data refreshes itself every weekday, and every Sunday a summary with a
-screenshot of the coming week lands in my inbox.
+**Which companies report earnings this week, and when, at a glance: one page of logos per week, and a summary
+in my inbox every Sunday.**
+
+I follow earnings around my watchlist, and earnings calendars are long tables: 800+ rows in a busy week, with the
+companies I care about somewhere in the middle. This shows the week the way I read it,
+largest companies first, split by day and by session, with my watchlist marked. The data refreshes itself every
+weekday, and every Sunday the coming week arrives by email with a screenshot of the calendar.
 
 ![A tour of the app: the week of Oct 26–30, 2026, company details, colour and watchlist views, search, an expanded session, weeks ahead with the estimates notice, and the dark theme](docs/tour.gif)
 
