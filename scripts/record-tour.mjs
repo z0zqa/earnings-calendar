@@ -23,7 +23,9 @@ const pause = (ms) => page.waitForTimeout(ms);
 const logos = () => page.waitForFunction(() => [...document.querySelectorAll('.tile img[src]')]
   .filter((i) => i.getBoundingClientRect().top < innerHeight).every((i) => i.complete), null, { timeout: 30000 })
   .catch(() => {}).then(() => pause(400));
-const shot = async (ms) => { frames.push({ png: await page.screenshot(), ms }); process.stdout.write('.'); };
+const shot = async (ms) => {
+  await page.mouse.move(8, 8); await pause(300); // park the pointer on the band, never over a logo
+  frames.push({ png: await page.screenshot(), ms }); process.stdout.write('.'); };
 
 // 1. The week: stats, five days, sessions, logos in monochrome
 await page.goto(url);
@@ -31,37 +33,33 @@ await page.evaluate(() => document.fonts.ready);
 await logos();
 await shot(2600);
 
-// 2. Hover brings a logo's colour back; click opens the company's numbers
+// 2. Click opens the company's numbers. Clicked from script, with the pointer kept off the tiles: a hovered tile
+//    shows the brand's colours, and the tour shows the app's own.
 const watched = page.locator('.tile--watch').first();
-await watched.hover(); await pause(250); await shot(900);
-await watched.click(); await pause(250); await shot(2800);
-await page.keyboard.press('Escape'); await page.mouse.move(W - 20, H - 20);
+await watched.evaluate((el) => el.click()); await pause(250); await shot(2800);
+await page.keyboard.press('Escape');
 
-// 3. Colour mode
-await page.click('#colorToggle'); await logos(); await shot(2000);
-
-// 4. Watchlist only
+// 3. Watchlist only
 await page.click('#watchOnly'); await logos(); await shot(2200);
 await page.click('#watchOnly');
 
-// 5. Search as you type
+// 4. Search as you type
 await page.type('#search', 'bank', { delay: 80 }); await logos(); await shot(2200);
 await page.fill('#search', '');
-await page.click('#colorToggle'); await logos();
 
-// 6. The busiest session, expanded
+// 5. The busiest session, expanded
 const more = page.locator('.more').first();
 if (await more.count()) {
-  await more.scrollIntoViewIfNeeded(); await more.click(); await logos();
+  await more.scrollIntoViewIfNeeded(); await more.evaluate((el) => el.click()); await logos();
   await page.evaluate(() => scrollBy(0, 260)); await logos(); await shot(2000);
   await page.evaluate(() => scrollTo(0, 0));
 }
 
-// 7. Weeks ahead, with the estimates notice
+// 6. Weeks ahead, with the estimates notice
 await page.click('#next'); await logos(); await shot(1500);
 await page.click('#next'); await logos(); await shot(2200);
 
-// 8. Dark theme, back on this week
+// 7. Dark theme, back on this week
 await page.emulateMedia({ colorScheme: 'dark' });
 await page.click('#today'); await logos(); await shot(2600);
 
